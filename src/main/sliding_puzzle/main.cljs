@@ -1,8 +1,16 @@
 (ns sliding-puzzle.main
   "An implementation of https://puzzling.stackexchange.com/questions/122811/sliding-crosses-in-a-5x5-grid"
-  (:require [quil.core :as q :include-macros true]
-            [quil.middleware :as m]))
+  (:require
+   [quil.core :as q :include-macros true]
+   [quil.middleware :as m]
+   [quil.sketch :as sketch]))
 
+;; TODO: game scale to fit canvas
+;; TODO: win screen
+;; TODO: welcome page with play button
+;; TODO: level selection
+;; TODO: phone touch controls
+;; nice to have: image export for your solution
 (def margin 20)
 (def animation-duration-ms 400)
 (def canvas-size 500)
@@ -21,8 +29,17 @@
      (when (= (.-keyCode e) 9)
        (.preventDefault e)))))
 
+(defn- resize-listener [applet]
+  (.addEventListener
+   js/window
+   "resize"
+   (fn [_e]
+     (let [size (min js/window.innerWidth js/window.innerHeight)]
+       (sketch/set-size applet size size)))))
+
 (defn setup []
   (prevent-defaults)
+  (resize-listener (sketch/current-applet))
   (q/frame-rate 60)
   (q/color-mode :hsb)
   (mk-init-state
@@ -138,13 +155,13 @@
 (declare the-sketch)
 
 (defn -main []
-  (q/defsketch the-sketch
-    :host "app"
-    :size [canvas-size canvas-size]
-    :setup setup
-    :update update-state
-    :draw draw-state
-    :mouse-pressed mouse-pressed
-    :key-pressed key-pressed
-    :middleware [m/fun-mode])
-  (js/console.log "Hello? World?"))
+  (let [size (min js/window.innerWidth js/window.innerHeight)]
+    (q/defsketch the-sketch
+      :host "app"
+      :size [size size]
+      :setup setup
+      :update update-state
+      :draw draw-state
+      :mouse-pressed mouse-pressed
+      :key-pressed key-pressed
+      :middleware [m/fun-mode])))
