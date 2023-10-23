@@ -16,11 +16,13 @@
 (defn- get-canvas-size []
   (min js/window.innerWidth js/window.innerHeight))
 
-(defn mk-init-state [size crosses]
-  {:size size
-   :box-width (/ (- (get-canvas-size) (* 2 margin)) size)
-   :crosses (into {} (map vector crosses (range)))
-   :id->pos (into {} (map vector (range) crosses))})
+(defn mk-game-state [size crosses]
+  (let [canvas-size (get-canvas-size)]
+    {:size size
+     :canvas-size canvas-size
+     :box-width (/ (- canvas-size (* 2 margin)) size)
+     :crosses (into {} (map vector crosses (range)))
+     :id->pos (into {} (map vector (range) crosses))}))
 
 (defn prevent-defaults []
   (.addEventListener
@@ -38,16 +40,19 @@
      "resize"
      (fn [_e]
        (sketch/with-sketch applet
-         (let [size (get-canvas-size)]
-           (q/resize-sketch size size)
-           (swap! (q/state-atom) #(assoc % :box-width (/ (- size (* 2 margin)) (:size %))))))))))
+         (let [canvas-size (get-canvas-size)]
+           (q/resize-sketch canvas-size canvas-size)
+           (swap! (q/state-atom)
+                  #(assoc %
+                          :box-width (/ (- canvas-size (* 2 margin)) (:size %))
+                          :canvas-size canvas-size))))))))
 
 (defn setup []
   (prevent-defaults)
   (resize-listener)
   (q/frame-rate 60)
   (q/color-mode :hsb)
-  (mk-init-state
+  (mk-game-state
    3
    [[0 0] [1 0] [0 1]]))
 
@@ -117,6 +122,12 @@
 (defn vec+ [& vectors]
   (apply mapv + vectors))
 
+(defn vec- [& vectors]
+  (apply mapv - vectors))
+
+(defn magnitude-squared [[x y]]
+  (+ (* x x) (* y y)))
+
 (defn in-bounds? [{:keys [size]} pos]
   (every? #(<= 0 % (dec size)) pos))
 
@@ -157,6 +168,17 @@
       (assoc state :selected 0)
       state)))
 
+(defn mouse-dragged [{:keys [box-width id->pos selected] :as state} {:keys [x y button]}]
+  (or (when (= button :left)
+        (when-let [selected-pos (get id->pos selected)]
+          (let [current (to-coords box-width [x y])
+                direction (vec- current selected-pos)]
+            (when (= (magnitude-squared direction) 1)
+              (-> state 
+                  (slide selected-pos direction)
+                  (dissoc :selected))))))
+      state))
+
 (declare the-sketch)
 
 (defn -main []
@@ -168,5 +190,7 @@
       :update update-state
       :draw draw-state
       :mouse-pressed mouse-pressed
+      :mouse-dragged mouse-dragged
       :key-pressed key-pressed
       :middleware [m/fun-mode])))
+
