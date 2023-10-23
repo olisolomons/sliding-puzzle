@@ -5,7 +5,6 @@
    [quil.middleware :as m]
    [quil.sketch :as sketch]))
 
-;; TODO: game scale to fit canvas
 ;; TODO: win screen
 ;; TODO: welcome page with play button
 ;; TODO: level selection
@@ -13,11 +12,13 @@
 ;; nice to have: image export for your solution
 (def margin 20)
 (def animation-duration-ms 400)
-(def canvas-size 500)
+
+(defn- get-canvas-size []
+  (min js/window.innerWidth js/window.innerHeight))
 
 (defn mk-init-state [size crosses]
   {:size size
-   :box-width (/ (- canvas-size (* 2 margin)) size)
+   :box-width (/ (- (get-canvas-size) (* 2 margin)) size)
    :crosses (into {} (map vector crosses (range)))
    :id->pos (into {} (map vector (range) crosses))})
 
@@ -27,19 +28,23 @@
    "keydown"
    (fn [e]
      (when (= (.-keyCode e) 9)
+       ;; stop tab key changing focus
        (.preventDefault e)))))
 
-(defn- resize-listener [applet]
-  (.addEventListener
-   js/window
-   "resize"
-   (fn [_e]
-     (let [size (min js/window.innerWidth js/window.innerHeight)]
-       (sketch/set-size applet size size)))))
+(defn- resize-listener []
+  (let [applet (sketch/current-applet)]
+    (.addEventListener
+     js/window
+     "resize"
+     (fn [_e]
+       (sketch/with-sketch applet
+         (let [size (get-canvas-size)]
+           (q/resize-sketch size size)
+           (swap! (q/state-atom) #(assoc % :box-width (/ (- size (* 2 margin)) (:size %))))))))))
 
 (defn setup []
   (prevent-defaults)
-  (resize-listener (sketch/current-applet))
+  (resize-listener)
   (q/frame-rate 60)
   (q/color-mode :hsb)
   (mk-init-state
@@ -155,7 +160,7 @@
 (declare the-sketch)
 
 (defn -main []
-  (let [size (min js/window.innerWidth js/window.innerHeight)]
+  (let [size (get-canvas-size)]
     (q/defsketch the-sketch
       :host "app"
       :size [size size]
