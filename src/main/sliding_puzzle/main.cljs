@@ -47,7 +47,44 @@
                           :box-width (/ (- canvas-size (* 2 margin)) (:size %))
                           :canvas-size canvas-size))))))))
 
+(declare mouse-pressed)
+(declare mouse-dragged)
+
+(defn- add-touch-listener []
+  (let [applet (sketch/current-applet)]
+    (.addEventListener
+     (-> js/document (.querySelector ".p5Canvas"))
+     "touchstart"
+     (fn [e]
+       (let [touch (aget (.-changedTouches e) 0)
+             rect (.getBoundingClientRect (.-target touch))]
+         (sketch/with-sketch applet
+           (swap! (q/state-atom)
+                  (fn [state]
+                    (mouse-pressed
+                     state
+                     {:x (- (.-clientX touch) (.-left rect))
+                      :y (- (.-clientY touch) (.-top rect))
+                      :button :left})))))
+       (.preventDefault e)))
+    (.addEventListener
+     (-> js/document (.querySelector ".p5Canvas"))
+     "touchmove"
+     (fn [e]
+       (let [touch (aget (.-changedTouches e) 0)
+             rect (.getBoundingClientRect (.-target touch))]
+         (sketch/with-sketch applet
+           (swap! (q/state-atom)
+                  (fn [state]
+                    (mouse-dragged
+                     state
+                     {:x (- (.-clientX touch) (.-left rect))
+                      :y (- (.-clientY touch) (.-top rect))
+                      :button :left})))))
+       (.preventDefault e)))))
+
 (defn setup []
+  (add-touch-listener)
   (prevent-defaults)
   (resize-listener)
   (q/frame-rate 60)
@@ -174,7 +211,7 @@
           (let [current (to-coords box-width [x y])
                 direction (vec- current selected-pos)]
             (when (= (magnitude-squared direction) 1)
-              (-> state 
+              (-> state
                   (slide selected-pos direction)
                   (dissoc :selected))))))
       state))
