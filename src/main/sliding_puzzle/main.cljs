@@ -8,7 +8,6 @@
 ;; TODO: win screen
 ;; TODO: welcome page with play button
 ;; TODO: level selection
-;; TODO: phone touch controls
 ;; nice to have: image export for your solution
 (def margin 20)
 (def animation-duration-ms 400)
@@ -18,7 +17,8 @@
 
 (defn mk-game-state [size crosses]
   (let [canvas-size (get-canvas-size)]
-    {:size size
+    {:type :game
+     :size size
      :canvas-size canvas-size
      :box-width (/ (- canvas-size (* 2 margin)) size)
      :crosses (into {} (map vector crosses (range)))
@@ -93,7 +93,10 @@
    3
    [[0 0] [1 0] [0 1]]))
 
-(defn update-state [state]
+(defmulti update-state :type)
+
+(defmethod update-state :game
+  [state]
   (let [t (q/millis)
         finished-animations
         (into []
@@ -121,7 +124,10 @@
     (let [x' (+ (* -2 x) 2)]
       (- 1 (* x' x' x' 0.5)))))
 
-(defn draw-state [{:keys [size crosses animations box-width] :as state}]
+(defmulti draw-state :type)
+
+(defmethod draw-state :game
+  [{:keys [size crosses animations box-width] :as state}]
   (q/background 240)
   (q/no-fill)
   (q/stroke 60)
@@ -149,7 +155,10 @@
 (defn to-coords [box-width pos]
   (map #(int (/ (- % margin) box-width)) pos))
 
-(defn mouse-pressed [{:keys [crosses box-width] :as state} {:keys [x y button]}]
+(defmulti mouse-pressed :type)
+
+(defmethod mouse-pressed :game
+  [{:keys [crosses box-width] :as state} {:keys [x y button]}]
   (if (= button :left)
     (let [coords (to-coords box-width [x y])]
       (assoc state :selected
@@ -189,7 +198,10 @@
                      :start-time (q/millis)
                      :end-time (+ (q/millis) animation-duration-ms)}))))))
 
-(defn key-pressed [{:keys [selected id->pos] :as state} event]
+(defmulti key-pressed :type)
+
+(defmethod key-pressed :game
+  [{:keys [selected id->pos] :as state} event]
   (if-let [selected-pos (get id->pos selected)]
     (case (:key event)
       (:ArrowRight :d) (slide state selected-pos [1 0])
@@ -205,7 +217,10 @@
       (assoc state :selected 0)
       state)))
 
-(defn mouse-dragged [{:keys [box-width id->pos selected] :as state} {:keys [x y button]}]
+(defmulti mouse-dragged :type)
+
+(defmethod mouse-dragged :game
+  [{:keys [box-width id->pos selected] :as state} {:keys [x y button]}]
   (or (when (= button :left)
         (when-let [selected-pos (get id->pos selected)]
           (let [current (to-coords box-width [x y])
