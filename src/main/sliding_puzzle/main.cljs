@@ -10,7 +10,6 @@
                                             update-state]]))
 
 ;; TODO: win screen
-;; TODO: welcome page with play button
 ;; TODO: level selection
 ;; nice to have: image export for your solution
 ;; TODO: remove brief colour change when swiping a piece
