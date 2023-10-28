@@ -7,14 +7,16 @@
   [{:size 3
     :pieces [[0 0] [1 0] [0 1]]
     :won? (fn [{:keys [pieces]}]
-            (get pieces [1 1]))}
+            (get pieces [1 1]))
+    :goal-text "Move a piece to the middle square"}
    {:size 4
     :pieces [[0 0] [1 0] [0 1]]
     :won? (fn [{:keys [pieces]}]
             (->> [[1 1] [1 2] [2 1] [2 2]]
                  (keep (partial get pieces))
                  count
-                 pos?))}
+                 pos?))
+    :goal-text "Move a piece to the central 2x2 subgrid"}
    {:size 4
     :pieces [[0 0] [1 0] [0 1]]
     :won? (fn [{:keys [pieces]}]
@@ -22,23 +24,20 @@
                  (keep (partial get pieces))
                  count
                  dec
-                 pos?))}
+                 pos?))
+    :goal-text "Move 2 pieces to the central 2x2 subgrid"}
    {:size 5
     :pieces [[0 0] [1 0] [0 1]]
     :won? (fn [{:keys [pieces]}]
-            (get pieces [2 2]))}])
+            (get pieces [2 2]))
+    :goal-text "Move a piece to the middle square"}])
 
 (def levels
   (reverse
     (rest
       (reductions
-        (fn [next-level {:keys [size pieces won?]}]
-          (game/mk-state 0 size pieces won? next-level))
+        (fn [next-level {:keys [size pieces won? goal-text]}]
+          (game/mk-state 0 size pieces won? goal-text next-level))
         nil
         (reverse levels-raw)))))
 
-(defn unfreeze [level canvas-size]
-  (println levels)
-  (add-derived-state
-   (assoc level
-          :canvas-size canvas-size)))

@@ -9,8 +9,9 @@
                                             key-pressed mouse-dragged mouse-pressed
                                             update-state]]))
 
-;; TODO: win screen
 ;; TODO: level selection
+;; TODO: win screen animation
+;; TODO: more keyboard shorcuts
 ;; nice to have: image export for your solution
 ;; TODO: remove brief colour change when swiping a piece
 

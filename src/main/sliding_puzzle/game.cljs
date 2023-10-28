@@ -6,7 +6,7 @@
                                             update-state]]
    [sliding-puzzle.win-screen :as win-screen]))
 
-(defn mk-state [canvas-size size pieces won? next-level]
+(defn mk-state [canvas-size size pieces won? goal-text next-level]
   (add-derived-state
    {:type :game
     :size size
@@ -14,9 +14,10 @@
     :pieces (into {} (map vector pieces (range)))
     :id->pos (into {} (map vector (range) pieces))
     :won? won?
+    :goal-text goal-text
     :next-level next-level}))
 
-(def margin 20)
+(def margin 0.08)
 
 (def animation-duration-ms 400)
 
@@ -37,14 +38,20 @@
       (- 1 (* x' x' x' 0.5)))))
 
 (defmethod draw-state :game
-  [{:keys [size pieces animations box-width canvas-size] :as state}]
+  [{:keys [size pieces animations box-width goal-text canvas-size] :as state}]
   (q/background 240)
+  (q/no-stroke)
+  (q/fill 50)
+  (q/text-size (* canvas-size 0.05))
+  (q/text-align :center :center)
+  (q/text goal-text (* canvas-size 0.5) (* canvas-size margin 0.5))
+
   (q/no-fill)
   (q/stroke 60)
   (q/stroke-weight (max (* canvas-size 0.01) 1))
   (q/stroke-join :round)
   (q/with-translation
-    [margin margin]
+    [(* margin canvas-size) (* margin canvas-size)]
     (let [width (* box-width size)]
       (q/rect 0 0 width width)
       (doseq [i (range (inc size))]
@@ -156,5 +163,5 @@
   [{:keys [canvas-size size] :as state}]
   (assoc state
          :box-width
-         (/ (- canvas-size (* 2 margin)) size)))
+         (/ (- canvas-size (* 2 margin canvas-size)) size)))
 
