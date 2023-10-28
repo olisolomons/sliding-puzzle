@@ -3,15 +3,19 @@
    [quil.core :as q]
    [sliding-puzzle.sketch-functions :refer [add-derived-state draw-state
                                             key-pressed mouse-dragged mouse-pressed
-                                            update-state]]))
+                                            update-state]]
+   [sliding-puzzle.win-screen :as win-screen]))
 
-(defn mk-state [canvas-size size crosses]
+(defn mk-state [canvas-size size pieces won? next-level]
   (add-derived-state
    {:type :game
-      :size size
-      :canvas-size canvas-size
-      :crosses (into {} (map vector crosses (range)))
-      :id->pos (into {} (map vector (range) crosses))}))
+    :size size
+    :canvas-size canvas-size
+    :pieces (into {} (map vector pieces (range)))
+    :id->pos (into {} (map vector (range) pieces))
+    :won? won?
+    :next-level next-level}))
+
 (def margin 20)
 
 (def animation-duration-ms 400)
@@ -33,11 +37,11 @@
       (- 1 (* x' x' x' 0.5)))))
 
 (defmethod draw-state :game
-  [{:keys [size crosses animations box-width] :as state}]
+  [{:keys [size pieces animations box-width canvas-size] :as state}]
   (q/background 240)
   (q/no-fill)
   (q/stroke 60)
-  (q/stroke-weight 5)
+  (q/stroke-weight (max (* canvas-size 0.01) 1))
   (q/stroke-join :round)
   (q/with-translation
     [margin margin]
@@ -48,7 +52,7 @@
       (doseq [i (range (inc size))]
         (q/line 0 (* box-width i) width (* box-width i))))
 
-    (doseq [[[x y] id] crosses]
+    (doseq [[[x y] id] pieces]
       (if-let [{:keys [from to start-time end-time]}
                (get animations id)]
         (apply draw-piece state id
@@ -59,7 +63,7 @@
         (draw-piece state id x y)))))
 
 (defmethod update-state :game
-  [state]
+  [{:keys [won?] :as state}]
   (let [t (q/millis)
         finished-animations
         (into []
@@ -68,18 +72,22 @@
                (map key))
               (:animations state))]
     (if (seq finished-animations)
-      (update state :animations #(apply dissoc % finished-animations))
+      (let [state' (update state :animations #(apply dissoc % finished-animations))]
+        (if (and (empty? (:animations state'))
+                 (won? state'))
+          (win-screen/mk-state state')
+          state'))
       state)))
 
 (defn to-coords [box-width pos]
   (map #(int (/ (- % margin) box-width)) pos))
 
 (defmethod mouse-pressed :game
-  [{:keys [crosses box-width] :as state} {:keys [x y button]}]
+  [{:keys [pieces box-width] :as state} {:keys [x y button]}]
   (if (= button :left)
     (let [coords (to-coords box-width [x y])]
       (assoc state :selected
-             (get crosses coords)))
+             (get pieces coords)))
     state))
 
 (defn vec+ [& vectors]
@@ -97,16 +105,16 @@
 (defn move [{:keys [selected] :as state} selected-pos direction]
   (let [next-pos (vec+ selected-pos direction)]
     (-> state
-        (update :crosses dissoc selected-pos)
-        (assoc-in [:crosses next-pos] selected)
+        (update :pieces dissoc selected-pos)
+        (assoc-in [:pieces next-pos] selected)
         (assoc-in [:id->pos selected] next-pos))))
 
 (defn slide [state selected-pos direction]
   (let [original-pos selected-pos]
-    (loop [{:keys [crosses selected] :as state} state
+    (loop [{:keys [pieces selected] :as state} state
            selected-pos selected-pos]
       (let [next-pos (vec+ selected-pos direction)]
-        (if (and (in-bounds? state next-pos) (not (get crosses next-pos)))
+        (if (and (in-bounds? state next-pos) (not (get pieces next-pos)))
           (recur (move state selected-pos direction) next-pos)
           (assoc-in state
                     [:animations selected]
@@ -149,3 +157,4 @@
   (assoc state
          :box-width
          (/ (- canvas-size (* 2 margin)) size)))
+
