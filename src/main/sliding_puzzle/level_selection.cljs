@@ -5,7 +5,8 @@
    [sliding-puzzle.sketch-functions :refer [add-derived-state draw-state
                                             key-pressed mouse-dragged mouse-pressed
                                             update-state]]
-   [sliding-puzzle.levels :as levels]))
+   [sliding-puzzle.levels :as levels]
+   [sliding-puzzle.screen-transition :as screen-transition]))
 
 (defn mk-state [canvas-size main-menu]
   (add-derived-state
@@ -23,10 +24,7 @@
            :buttons
            (cons
             {:rect (map p [0.05 0.05 0.2 0.1])
-             :fn (fn [state] (add-derived-state
-                               (assoc main-menu
-                                      :canvas-size
-                                      (:canvas-size state))))
+             :fn (fn [state] (screen-transition/mk-state state main-menu :left))
              :text "Back"
              :text-size (* canvas-size 0.04)}
             (map-indexed
@@ -38,7 +36,7 @@
                                 (- box-width padding padding)
                                 (- box-width padding padding)])
                   :fn (fn [state]
-                        (add-derived-state (assoc level :canvas-size (:canvas-size state))))
+                        (screen-transition/mk-state state level :right))
                   :text (str (inc i))}))
              levels/levels)))))
 
@@ -52,7 +50,6 @@
 
 (defmethod draw-state :level-selection
   [state]
-  (q/background 240)
   (buttons/draw-buttons state))
 
 (defmethod mouse-pressed :level-selection

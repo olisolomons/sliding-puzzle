@@ -9,7 +9,6 @@
                                             key-pressed mouse-dragged mouse-pressed
                                             update-state]]))
 
-;; TODO: win screen animation
 ;; TODO: more keyboard shorcuts
 ;; nice to have: image export for your solution
 ;; nice to have: level creator
@@ -81,6 +80,10 @@
   (q/color-mode :hsb)
   (main-menu/mk-state (get-canvas-size)))
 
+(defn draw-state-wrapped [state]
+  (q/background 240)
+  (draw-state state))
+
 (declare the-sketch)
 
 (defn -main []
@@ -90,7 +93,7 @@
       :size [size size]
       :setup setup
       :update update-state
-      :draw draw-state
+      :draw draw-state-wrapped
       :mouse-pressed mouse-pressed
       :mouse-dragged mouse-dragged
       :key-pressed key-pressed

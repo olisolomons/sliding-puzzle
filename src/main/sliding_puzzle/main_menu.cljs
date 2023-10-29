@@ -6,7 +6,8 @@
    [sliding-puzzle.levels :as levels]
    [sliding-puzzle.sketch-functions :refer [add-derived-state draw-state
                                             key-pressed mouse-dragged mouse-pressed
-                                            update-state]]))
+                                            update-state]]
+   [sliding-puzzle.screen-transition :as screen-transition]))
 
 (defn mk-state [canvas-size]
   (add-derived-state
@@ -19,14 +20,19 @@
          :buttons
          [{:rect (let [p #(* canvas-size %)]
                    (map p [0.3 0.45 0.4 0.1]))
-           :fn (fn [state] (add-derived-state
-                            (assoc (first levels/levels)
-                                   :canvas-size (:canvas-size state))))
+           :fn (fn [state] (screen-transition/mk-state
+                             state
+                            (first levels/levels)
+                            :right))
            :text "Play"
            :text-size (* canvas-size 0.04)}
           {:rect (let [p #(* canvas-size %)]
                    (map p [0.3 0.6 0.4 0.1]))
-           :fn (fn [state] (level-selection/mk-state (:canvas-size state) state))
+           :fn (fn [state]
+                 (screen-transition/mk-state state
+                                             (level-selection/mk-state (:canvas-size state)
+                                                                       state)
+                                             :right))
            :text "Level Selection"
            :text-size (* canvas-size 0.04)}]))
 
@@ -40,8 +46,8 @@
 
 (defmethod draw-state :main-menu
   [{:keys [canvas-size] :as state}]
-  (q/background 240)
   (q/fill 50)
+  (q/no-stroke)
   (q/text-size (/ canvas-size 8))
   (q/text-align :center :center)
   (q/text "Sliding Puzzle" (* canvas-size 0.5) (* canvas-size 0.3))

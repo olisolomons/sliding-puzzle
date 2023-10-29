@@ -1,6 +1,7 @@
 (ns sliding-puzzle.game
   (:require
    [quil.core :as q]
+   [sliding-puzzle.easing-functions :as easing-functions]
    [sliding-puzzle.sketch-functions :refer [add-derived-state draw-state
                                             key-pressed mouse-dragged mouse-pressed
                                             update-state]]
@@ -31,15 +32,8 @@
 (defn vector-lerp [[x1 y1] [x2 y2] amount]
   [(q/lerp x1 x2 amount) (q/lerp y1 y2 amount)])
 
-(defn ease-in-out-cubic [x]
-  (if (< x 0.5)
-    (* 4 x x x)
-    (let [x' (+ (* -2 x) 2)]
-      (- 1 (* x' x' x' 0.5)))))
-
 (defmethod draw-state :game
   [{:keys [size pieces animations box-width goal-text canvas-size] :as state}]
-  (q/background 240)
   (q/no-stroke)
   (q/fill 50)
   (q/text-size (* canvas-size 0.05))
@@ -64,7 +58,7 @@
                (get animations id)]
         (apply draw-piece state id
                (vector-lerp from to
-                            (ease-in-out-cubic
+                            (easing-functions/ease-in-out-cubic
                              (/ (- (q/millis) start-time)
                                 (- end-time start-time)))))
         (draw-piece state id x y)))))
