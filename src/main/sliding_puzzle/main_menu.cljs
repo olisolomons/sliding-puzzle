@@ -33,6 +33,13 @@
                                                                        state)
                                              :right))
            :text "Level Selection"
+           :text-size (* canvas-size 0.04)}
+          {:rect (let [p #(* canvas-size %)]
+                   (map p [0.3 0.75 0.4 0.1]))
+           :fn (fn [state]
+                 (set! js/window.location.href "https://puzzling.stackexchange.com/users/62537/dmitry-kamenetsky")
+                 state)
+           :text "Puzzle Credit"
            :text-size (* canvas-size 0.04)}]))
 
 (defmethod draw-state :main-menu
@@ -42,6 +49,12 @@
   (q/text-size (/ canvas-size 8))
   (q/text-align :center :center)
   (q/text "Sliding Puzzle" (* canvas-size 0.5) (* canvas-size 0.3))
+  (q/text-size (* canvas-size 0.04))
+  (q/text-align :left :center)
+  (q/text "A game programmed by Oli Solomons"
+          (* canvas-size 0.05) (* canvas-size 0.9))
+  (q/text "Puzzles created by Dmitry Kamenetsky"
+          (* canvas-size 0.05) (* canvas-size 0.95))
   (buttons/draw-buttons state))
 
 (defmethod mouse-pressed :main-menu
