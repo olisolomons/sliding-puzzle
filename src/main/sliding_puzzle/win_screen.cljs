@@ -98,8 +98,12 @@
     state))
 
 (defmethod key-pressed :win-screen
-  [state event]
+  [{:keys [game-state] :as state} event]
   (case (:key event)
-    :space state
+    :Escape (screen-transition/mk-state
+             state
+             {:type :main-menu}
+             :left)
+    :space (screen-transition/mk-state state (:next-level game-state) :right)
     state))
 

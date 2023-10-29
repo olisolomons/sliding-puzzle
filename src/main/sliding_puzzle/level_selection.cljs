@@ -59,6 +59,8 @@
     state))
 
 (defmethod key-pressed :level-selection
-  [state _event]
-  state)
+  [{:keys [main-menu] :as state} event]
+  (case (:key event)
+    :Escape (screen-transition/mk-state state main-menu :left)
+    state))
 
