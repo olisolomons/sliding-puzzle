@@ -2,11 +2,11 @@
   (:require
    [quil.core :as q]
    [sliding-puzzle.buttons :as buttons]
-   [sliding-puzzle.game :as game]
+   [sliding-puzzle.level-selection :as level-selection]
+   [sliding-puzzle.levels :as levels]
    [sliding-puzzle.sketch-functions :refer [add-derived-state draw-state
                                             key-pressed mouse-dragged mouse-pressed
-                                            update-state]]
-   [sliding-puzzle.levels :as levels]))
+                                            update-state]]))
 
 (defn mk-state [canvas-size]
   (add-derived-state
@@ -18,11 +18,16 @@
   (assoc state
          :buttons
          [{:rect (let [p #(* canvas-size %)]
-                   (map p [0.4 0.45 0.2 0.1]))
+                   (map p [0.3 0.45 0.4 0.1]))
            :fn (fn [state] (add-derived-state
                             (assoc (first levels/levels)
                                    :canvas-size (:canvas-size state))))
            :text "Play"
+           :text-size (* canvas-size 0.04)}
+          {:rect (let [p #(* canvas-size %)]
+                   (map p [0.3 0.6 0.4 0.1]))
+           :fn (fn [state] (level-selection/mk-state (:canvas-size state) state))
+           :text "Level Selection"
            :text-size (* canvas-size 0.04)}]))
 
 (defmethod mouse-dragged :main-menu
