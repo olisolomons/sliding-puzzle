@@ -4,7 +4,7 @@
    [sliding-puzzle.easing-functions :as easing-functions]
    [sliding-puzzle.sketch-functions :refer [add-derived-state draw-state
                                             key-pressed mouse-dragged mouse-pressed
-                                            update-state]]
+                                            mouse-released update-state]]
    [sliding-puzzle.win-screen :as win-screen]))
 
 (defn mk-state [canvas-size size pieces won? goal-text next-level]
@@ -22,8 +22,8 @@
 
 (def animation-duration-ms 400)
 
-(defn draw-piece [{:keys [box-width selected]} id x y]
-  (if (= id selected)
+(defn draw-piece [{:keys [box-width selected mouse-pressed?]} id x y]
+  (if (and (= id selected) (not mouse-pressed?))
     (q/fill 80 60 200 200)
     (q/fill 80 30 240 200))
   (q/ellipse (* (+ x 0.5) box-width) (* (+ 0.5 y) box-width)
@@ -87,9 +87,14 @@
   [{:keys [pieces] :as state} {:keys [x y button]}]
   (if (= button :left)
     (let [coords (to-coords state [x y])]
-      (assoc state :selected
-             (get pieces coords)))
+      (assoc state
+             :selected (get pieces coords)
+             :mouse-pressed? true))
     state))
+
+(defmethod mouse-released :game
+ [state _event]
+ (dissoc state :mouse-pressed?))
 
 (defn vec+ [& vectors]
   (apply mapv + vectors))

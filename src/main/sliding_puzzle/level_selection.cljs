@@ -1,12 +1,10 @@
 (ns sliding-puzzle.level-selection
   (:require
-   [quil.core :as q]
    [sliding-puzzle.buttons :as buttons]
-   [sliding-puzzle.sketch-functions :refer [add-derived-state draw-state
-                                            key-pressed mouse-dragged mouse-pressed
-                                            update-state]]
    [sliding-puzzle.levels :as levels]
-   [sliding-puzzle.screen-transition :as screen-transition]))
+   [sliding-puzzle.screen-transition :as screen-transition]
+   [sliding-puzzle.sketch-functions :refer [add-derived-state draw-state
+                                            key-pressed mouse-pressed]]))
 
 (defn mk-state [canvas-size main-menu]
   (add-derived-state
@@ -39,14 +37,6 @@
                         (screen-transition/mk-state state level :right))
                   :text (str (inc i))}))
              levels/levels)))))
-
-(defmethod mouse-dragged :level-selection
-  [state]
-  state)
-
-(defmethod update-state :level-selection
-  [state]
-  state)
 
 (defmethod draw-state :level-selection
   [state]

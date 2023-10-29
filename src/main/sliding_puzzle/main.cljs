@@ -7,7 +7,7 @@
    [sliding-puzzle.main-menu :as main-menu]
    [sliding-puzzle.sketch-functions :refer [add-derived-state draw-state
                                             key-pressed mouse-dragged mouse-pressed
-                                            update-state]]))
+                                            mouse-released update-state]]))
 
 ;; nice to have: image export for your solution
 ;; nice to have: level creator
@@ -57,6 +57,20 @@
        (.preventDefault e)))
     (.addEventListener
      (-> js/document (.querySelector ".p5Canvas"))
+     "touchend"
+     (fn [e]
+       (let [touch (aget (.-changedTouches e) 0)
+             rect (.getBoundingClientRect (.-target touch))]
+         (sketch/with-sketch applet
+           (swap! (q/state-atom)
+                  (fn [state]
+                    (mouse-released
+                     state
+                     {:x (- (.-clientX touch) (.-left rect))
+                      :y (- (.-clientY touch) (.-top rect))})))))
+       (.preventDefault e)))
+    (.addEventListener
+     (-> js/document (.querySelector ".p5Canvas"))
      "touchmove"
      (fn [e]
        (let [touch (aget (.-changedTouches e) 0)
@@ -94,6 +108,7 @@
       :update update-state
       :draw draw-state-wrapped
       :mouse-pressed mouse-pressed
+      :mouse-released mouse-released
       :mouse-dragged mouse-dragged
       :key-pressed key-pressed
       :middleware [m/fun-mode])))

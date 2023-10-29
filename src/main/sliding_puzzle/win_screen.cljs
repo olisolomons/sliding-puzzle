@@ -54,10 +54,6 @@
             (assoc game-state
                    :canvas-size canvas-size)))))
 
-(defmethod mouse-dragged :win-screen
-  [state]
-  state)
-
 (defmethod update-state :win-screen
   [{:keys [animation-start] :as state}]
   (if (and animation-start

@@ -2,7 +2,6 @@
   (:require
    [quil.core :as q]
    [sliding-puzzle.sketch-functions :refer [add-derived-state draw-state
-                                            key-pressed mouse-dragged mouse-pressed
                                             update-state]]
    [sliding-puzzle.easing-functions :as easing-functions]))
 
@@ -34,10 +33,6 @@
           (assoc to
                  :canvas-size canvas-size))))
 
-(defmethod mouse-dragged :screen-transition
-  [state]
-  state)
-
 (defmethod update-state :screen-transition
   [{:keys [animation-start to] :as state}]
   (if (and animation-start
@@ -56,12 +51,4 @@
     (q/with-translation
       [(* canvas-size (- direction shift)) 0]
       (draw-state to))))
-
-(defmethod mouse-pressed :screen-transition
-  [state _event]
-  state)
-
-(defmethod key-pressed :screen-transition
-  [state _event]
-  state)
 
