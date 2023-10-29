@@ -36,7 +36,11 @@
            (q/resize-sketch canvas-size canvas-size)
            (swap! (q/state-atom)
                   (comp add-derived-state
-                        #(assoc % :canvas-size canvas-size)))))))))
+                        #(assoc % :canvas-size canvas-size)))
+           ;; magic incantation to stop a weird bug
+           ;; where the scene appeared super zoomed-in
+           ;; sometimes.
+           (q/pixel-density (q/display-density))))))))
 
 (defn- add-touch-listener []
   (let [applet (sketch/current-applet)]
