@@ -100,6 +100,8 @@
              state
              {:type :main-menu}
              :left)
-    :space (screen-transition/mk-state state (:next-level game-state) :right)
+    :space (if (:next-level game-state)
+             (screen-transition/mk-state state (:next-level game-state) :right)
+             state)
     state))
 
