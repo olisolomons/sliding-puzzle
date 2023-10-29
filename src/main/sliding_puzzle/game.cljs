@@ -80,13 +80,13 @@
           state'))
       state)))
 
-(defn to-coords [box-width pos]
-  (map #(int (/ (- % margin) box-width)) pos))
+(defn to-coords [{:keys [box-width canvas-size]} pos]
+  (map #(int (/ (- % (* margin canvas-size)) box-width)) pos))
 
 (defmethod mouse-pressed :game
-  [{:keys [pieces box-width] :as state} {:keys [x y button]}]
+  [{:keys [pieces] :as state} {:keys [x y button]}]
   (if (= button :left)
-    (let [coords (to-coords box-width [x y])]
+    (let [coords (to-coords state [x y])]
       (assoc state :selected
              (get pieces coords)))
     state))
@@ -125,10 +125,10 @@
                      :end-time (+ (q/millis) animation-duration-ms)}))))))
 
 (defmethod mouse-dragged :game
-  [{:keys [box-width id->pos selected] :as state} {:keys [x y button]}]
+  [{:keys [id->pos selected] :as state} {:keys [x y button]}]
   (or (when (= button :left)
         (when-let [selected-pos (get id->pos selected)]
-          (let [current (to-coords box-width [x y])
+          (let [current (to-coords state [x y])
                 direction (vec- current selected-pos)]
             (when (= (magnitude-squared direction) 1)
               (-> state
